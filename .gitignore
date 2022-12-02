@@ -1,0 +1,10 @@
+.DS_Store
+.vscode/
+.idea/
+
+.env
+.credentials
+
+kube.cfg
+
+github.com/

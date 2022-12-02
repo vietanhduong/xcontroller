@@ -1,0 +1,73 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: bars.foo.anhdv.dev
+    app.kubernetes.io/part-of: xcontroller
+  name: bars.foo.anhdv.dev
+spec:
+  group: foo.anhdv.dev
+  names:
+    kind: Bar
+    listKind: BarList
+    plural: bars
+    shortNames:
+      - bar
+    singular: bar
+  scope: Namespaced
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .spec.image
+          name: Image
+          type: string
+        - jsonPath: .status
+          name: Ready
+          type: string
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+              properties:
+                name:
+                  type: string
+                  pattern: '^[a-z]([-a-z0-9]*[a-z0-9])*$'
+            spec:
+              type: object
+              properties:
+                replicas:
+                  type: integer
+                  minimum: 0
+                  maximum: 10
+                  default: 1
+                image:
+                  type: string
+                  default: nginx:latest
+                containerName:
+                  type: string
+                annotations:
+                  x-kubernetes-preserve-unknown-fields: true
+                  type: object
+            status:
+              type: object
+              properties:
+                ready:
+                  type: integer
+                desired:
+                  type: integer
+          required:
+            - metadata
+            - spec
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: { }

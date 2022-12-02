@@ -1,0 +1,10 @@
+apiVersion: foo.anhdv.dev/v1alpha1
+kind: Bar
+metadata:
+  name: example
+spec:
+  replicas: 2
+  image: nginx:latest
+  containerName: nginx
+  annotations:
+    managed-by: example
