@@ -63,7 +63,7 @@ func newCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&kubeconfig, "kubeconfig", env.StringFromEnv("KUBECONFIG", ""), "Full path to kubernetes client configuration, i.e. ~/.kube/config")
 	cmd.Flags().StringVar(&logLevel, "log-level", env.StringFromEnv("LOG_LEVEL", "info"), "Log level")
-	cmd.Flags().IntVar(&worker, "private-ingress-workers", env.ParseNumFromEnv("WORKERS", 10, 1, math.MaxInt32), "Number of workers")
+	cmd.Flags().IntVar(&worker, "workers", env.ParseNumFromEnv("WORKERS", 10, 1, math.MaxInt32), "Number of workers")
 
 	return cmd
 }
