@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"os"
 
@@ -23,18 +22,6 @@ import (
 	"github.com/vietanhduong/xcontroller/pkg/util/log"
 )
 
-var (
-	GitCommit = "unknown"
-	BuildDate = "unknown"
-	Version   = "unreleased"
-)
-
-func showVersion() {
-	fmt.Printf("Version:\t %s\n", Version)
-	fmt.Printf("Git commit:\t %s\n", GitCommit)
-	fmt.Printf("Date:\t\t %s\n", BuildDate)
-}
-
 func newCommand() *cobra.Command {
 	var (
 		kubeconfig string
@@ -49,10 +36,6 @@ func newCommand() *cobra.Command {
 		Use:          "xcontroller",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if cmd.Flag("version").Value.String() == "true" {
-				showVersion()
-				return nil
-			}
 			logger := log.NewLogger(logLevel)
 			zap.ReplaceGlobals(logger)
 			klog.SetLogger(log.NewK8sLogger(logLevel))
@@ -78,7 +61,6 @@ func newCommand() *cobra.Command {
 			return ctrl.Run(worker)
 		},
 	}
-	cmd.PersistentFlags().BoolP("version", "v", false, "Print version information and exit. This flag is only available at the global level.")
 	cmd.Flags().StringVar(&kubeconfig, "kubeconfig", env.StringFromEnv("KUBECONFIG", ""), "Full path to kubernetes client configuration, i.e. ~/.kube/config")
 	cmd.Flags().StringVar(&logLevel, "log-level", env.StringFromEnv("LOG_LEVEL", "info"), "Log level")
 	cmd.Flags().IntVar(&worker, "private-ingress-workers", env.ParseNumFromEnv("WORKERS", 10, 1, math.MaxInt32), "Number of workers")
