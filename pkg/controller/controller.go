@@ -11,12 +11,14 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kubeinformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	app_listers "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
+	foo_clientset "github.com/vietanhduong/xcontroller/pkg/client/clientset/versioned"
 	foo_scheme "github.com/vietanhduong/xcontroller/pkg/client/clientset/versioned/scheme"
 	foo_informers "github.com/vietanhduong/xcontroller/pkg/client/informers/externalversions"
 	foo_listers "github.com/vietanhduong/xcontroller/pkg/client/listers/foo/v1alpha1"
@@ -27,6 +29,9 @@ import (
 
 type Controller struct {
 	ctx context.Context
+
+	fooClient  foo_clientset.Interface
+	kubeClient kubernetes.Interface
 
 	queue workqueue.RateLimitingInterface
 
@@ -39,19 +44,20 @@ type Controller struct {
 	recorder record.EventRecorder
 }
 
-func NewController(ctx context.Context,
-	fooInformerFactory foo_informers.SharedInformerFactory,
-	kubeInformerFactory kubeinformers.SharedInformerFactory,
-	recorder record.EventRecorder,
-) *Controller {
+func NewController(ctx context.Context, fooClient foo_clientset.Interface, kubeClient kubernetes.Interface, recorder record.EventRecorder) *Controller {
 	utilruntime.Must(foo_scheme.AddToScheme(scheme.Scheme))
 	log.Info("Creating event broadcaster...")
+
+	fooInformerFactory := foo_informers.NewSharedInformerFactory(fooClient, time.Hour)
+	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Hour)
 
 	barInformer := fooInformerFactory.Foo().V1alpha1().Bars()
 	deployInformer := kubeInformerFactory.Apps().V1().Deployments()
 
 	controller := &Controller{
 		ctx:            ctx,
+		fooClient:      fooClient,
+		kubeClient:     kubeClient,
 		queue:          workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Bar_queue"),
 		barInformer:    barInformer.Informer(),
 		barLister:      barInformer.Lister(),
@@ -63,6 +69,8 @@ func NewController(ctx context.Context,
 	controller.barInformer.AddEventHandler(addFooResourceHandlerFunc(controller.queue))
 	controller.deployInformer.AddEventHandler(controller.addK8sResourceHandlerFunc())
 
+	fooInformerFactory.Start(ctx.Done())
+	kubeInformerFactory.Start(ctx.Done())
 	return controller
 }
 
@@ -143,7 +151,10 @@ func (c *Controller) processBar(key string) error {
 		return err
 	}
 
-	return c.reconcile(b)
+	if err = c.reconcile(b); err != nil {
+		c.onReconcileFailed(b, err)
+	}
+	return err
 }
 
 func (c *Controller) addK8sResourceHandlerFunc() cache.ResourceEventHandlerFuncs {

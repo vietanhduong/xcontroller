@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -18,10 +17,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 
-	kubeinformers "k8s.io/client-go/informers"
-
 	foo_clientset "github.com/vietanhduong/xcontroller/pkg/client/clientset/versioned"
-	foo_informers "github.com/vietanhduong/xcontroller/pkg/client/informers/externalversions"
 	"github.com/vietanhduong/xcontroller/pkg/controller"
 	"github.com/vietanhduong/xcontroller/pkg/util/env"
 	"github.com/vietanhduong/xcontroller/pkg/util/log"
@@ -78,12 +74,7 @@ func newCommand() *cobra.Command {
 			eventBroadcaster.StartRecordingToSink(&typev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events(metav1.NamespaceAll)})
 			recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: "xcontroller"})
 
-			fooInformerFactor := foo_informers.NewSharedInformerFactory(fooClient, time.Hour)
-			kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Hour)
-
-			ctrl := controller.NewController(cmd.Context(), fooInformerFactor, kubeInformerFactory, recorder)
-			fooInformerFactor.Start(cmd.Context().Done())
-			kubeInformerFactory.Start(cmd.Context().Done())
+			ctrl := controller.NewController(cmd.Context(), fooClient, kubeClient, recorder)
 			return ctrl.Run(worker)
 		},
 	}

@@ -5,7 +5,7 @@ package foo.v1alpha1;
 option go_package = "github.com/vietanhduong/xcontroller/api/foo/v1alpha1";
 
 message Bar {
-  uint32 replicas = 1;
+  int32 replicas = 1;
   string image = 2;
   string container_name = 3;
   map<string,string> annotations = 4;

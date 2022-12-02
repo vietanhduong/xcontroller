@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/vietanhduong/xcontroller/api/foo/v1alpha1"
@@ -20,11 +18,11 @@ type Bar struct {
 }
 
 type BarStatus struct {
-	Ready   uint32 `json:"ready,omitempty"`
-	Desired uint32 `json:"desired,omitempty"`
+	ReadyReplicas int32  `json:"readyReplicas"`
+	Ready         string `json:"ready"`
+	Success       bool   `json:"success"`
+	Message       string `json:"message"`
 }
-
-func (in *BarStatus) String() string { return fmt.Sprintf("%d/%d", in.Ready, in.Desired) }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

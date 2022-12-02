@@ -20,9 +20,12 @@ spec:
         - jsonPath: .spec.image
           name: Image
           type: string
-        - jsonPath: .status
+        - jsonPath: .status.ready
           name: Ready
           type: string
+        - jsonPath: .status.success
+          name: Success
+          type: boolean
         - jsonPath: .metadata.creationTimestamp
           name: Age
           type: date
@@ -59,10 +62,14 @@ spec:
             status:
               type: object
               properties:
+                readyReplicas:
+                  type: integer
                 ready:
-                  type: integer
-                desired:
-                  type: integer
+                  type: string
+                success:
+                  type: boolean
+                message:
+                  type: string
           required:
             - metadata
             - spec
